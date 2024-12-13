@@ -94,7 +94,7 @@ function s3_gallery_shortcode($atts) {
 
         $images = [];
         foreach ($results['Contents'] as $object) {
-            if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $object['Key'])) {
+            if (preg_match('/\\.(jpg|jpeg|png|webp)$/i', $object['Key'])) {
                 $relative_key = ltrim(str_replace($path, '', $object['Key']), '/');
                 $images[] = [
                     'url' => rtrim($bucket_url, '/') . '/' . $relative_key,
