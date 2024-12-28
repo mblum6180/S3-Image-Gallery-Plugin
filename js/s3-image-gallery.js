@@ -1,4 +1,4 @@
-	document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   const images = document.querySelectorAll(".s3-gallery-link");
   let currentIndex = 0;
 
@@ -8,15 +8,10 @@
 
   const img = document.createElement("img");
 
-  // Watermark (image) element
+  // Watermark element
   const watermark = document.createElement("img");
-  // Replace this URL with your actual watermark image URL
-  watermark.src = "https://www.mblum6180.com/wp-content/uploads/2023/09/MatthewBlumWhite.webp"; 
   watermark.classList.add("s3-gallery-watermark");
-
-  // Caption is disabled, but we'll keep the element (hidden)
-  const caption = document.createElement("p");
-  caption.classList.add("s3-gallery-caption");
+  watermark.src = S3GallerySettings.watermarkUrl || ""; // Use the URL from admin settings
 
   const prevButton = document.createElement("button");
   prevButton.innerText = "<";
@@ -36,7 +31,6 @@
   overlay.appendChild(closeButton);
   overlay.appendChild(img);
   overlay.appendChild(watermark);
-  overlay.appendChild(caption);
   document.body.appendChild(overlay);
 
   // Event listeners for overlay interactions
@@ -106,9 +100,6 @@
     // Apply to overlay
     img.src = bestSrc;
 
-    // Disable (hide) text caption
-    caption.innerText = ""; 
-    caption.style.display = "none";
+    // No caption logic required; watermark is handled separately
   }
 });
-

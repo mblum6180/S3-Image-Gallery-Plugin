@@ -16,9 +16,7 @@ use Aws\S3\S3Client;
 /**
  * Enqueue CSS and JS
  */
-function s3_image_gallery_enqueue_assets()
-{
-    // Only load on frontend
+function s3_image_gallery_enqueue_assets() {
     if (!is_admin()) {
         wp_enqueue_style(
             's3-image-gallery-style',
@@ -34,12 +32,17 @@ function s3_image_gallery_enqueue_assets()
             array(),
             '1.0',
             true
-	);
-	 // Optionally enqueue a custom script for disabling right-click if you prefer to keep it separate
-        wp_enqueue_script('disable-right-click', plugin_dir_url(__FILE__) . 'js/disable-right-click.js', [], '1.0', true);
+        );
+
+        // Pass the watermark URL to JavaScript
+        $watermark_url = get_option('s3_watermark_url', '');
+        wp_localize_script('s3-image-gallery-script', 'S3GallerySettings', array(
+            'watermarkUrl' => esc_url($watermark_url),
+        ));
     }
 }
 add_action('wp_enqueue_scripts', 's3_image_gallery_enqueue_assets');
+
 
 
 
@@ -61,14 +64,21 @@ function s3_gallery_menu()
 /**
  * Settings Page
  */
-function s3_gallery_settings_page()
-{
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['s3_buckets'])) {
-        update_option('s3_buckets', sanitize_textarea_field($_POST['s3_buckets']));
+function s3_gallery_settings_page() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (isset($_POST['s3_buckets'])) {
+            update_option('s3_buckets', sanitize_textarea_field($_POST['s3_buckets']));
+        }
+
+        if (isset($_POST['watermark_url'])) {
+            update_option('s3_watermark_url', esc_url_raw($_POST['watermark_url']));
+        }
+
         echo '<div class="updated"><p>Settings saved.</p></div>';
     }
 
     $buckets = get_option('s3_buckets', '');
+    $watermark_url = get_option('s3_watermark_url', ''); // Default empty
     ?>
     <div class="wrap">
         <h1>S3 Image Gallery</h1>
@@ -77,6 +87,12 @@ function s3_gallery_settings_page()
                 <p>Enter your S3 bucket URLs, one per line:</p>
             </label>
             <textarea id="s3_buckets" name="s3_buckets" rows="10" cols="50" class="large-text"><?php echo esc_textarea($buckets); ?></textarea>
+
+            <label for="watermark_url">
+                <p>Enter the URL of the watermark image:</p>
+            </label>
+            <input id="watermark_url" name="watermark_url" type="url" class="regular-text" value="<?php echo esc_attr($watermark_url); ?>" />
+
             <input type="submit" class="button-primary" value="Save Changes">
         </form>
 
@@ -94,6 +110,7 @@ function s3_gallery_settings_page()
     </div>
     <?php
 }
+
 
 /**
  * Shortcode to Render Gallery
