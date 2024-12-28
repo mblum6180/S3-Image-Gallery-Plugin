@@ -8,10 +8,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const img = document.createElement("img");
 
-  // Watermark element
-  const watermark = document.createElement("img");
-  watermark.classList.add("s3-gallery-watermark");
-  watermark.src = S3GallerySettings.watermarkUrl || ""; // Use the URL from admin settings
+  let watermark;
+  if (S3GallerySettings.watermarkEnabled) {
+    watermark = document.createElement("img");
+    watermark.classList.add("s3-gallery-watermark");
+    watermark.src = S3GallerySettings.watermarkUrl || "";
+    overlay.appendChild(watermark);
+  }
 
   const prevButton = document.createElement("button");
   prevButton.innerText = "<";
@@ -25,23 +28,25 @@ document.addEventListener("DOMContentLoaded", () => {
   closeButton.innerText = "X";
   closeButton.classList.add("s3-gallery-button", "s3-gallery-button--close");
 
-  // Append elements
   overlay.appendChild(prevButton);
   overlay.appendChild(nextButton);
   overlay.appendChild(closeButton);
   overlay.appendChild(img);
-  overlay.appendChild(watermark);
   document.body.appendChild(overlay);
 
   // Event listeners for overlay interactions
   prevButton.addEventListener("click", () => {
-    currentIndex = (currentIndex - 1 + images.length) % images.length;
-    showImage();
+    if (currentIndex > 0) {
+      currentIndex--; // Move to the previous image
+      showImage();
+    }
   });
 
   nextButton.addEventListener("click", () => {
-    currentIndex = (currentIndex + 1) % images.length;
-    showImage();
+    if (currentIndex < images.length - 1) {
+      currentIndex++; // Move to the next image
+      showImage();
+    }
   });
 
   closeButton.addEventListener("click", () => {
@@ -49,20 +54,18 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   overlay.addEventListener("click", (e) => {
-    // Close overlay if user clicks on the background
     if (e.target === overlay) {
       overlay.style.display = "none";
     }
   });
 
-  // Keyboard navigation
   document.addEventListener("keydown", (event) => {
     if (overlay.style.display === "flex") {
-      if (event.key === "ArrowRight") {
-        currentIndex = (currentIndex + 1) % images.length;
+      if (event.key === "ArrowRight" && currentIndex < images.length - 1) {
+        currentIndex++;
         showImage();
-      } else if (event.key === "ArrowLeft") {
-        currentIndex = (currentIndex - 1 + images.length) % images.length;
+      } else if (event.key === "ArrowLeft" && currentIndex > 0) {
+        currentIndex--;
         showImage();
       } else if (event.key === "Escape") {
         overlay.style.display = "none";
@@ -70,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Setup click events for gallery items
   images.forEach((link, index) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
@@ -80,15 +82,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Display the current image in the overlay
   function showImage() {
     const currentLink = images[currentIndex];
     const screenWidth = window.innerWidth;
 
-    // Default to src720
     let bestSrc = currentLink.dataset.src720;
 
-    // Choose higher resolutions if the screen is large enough
     if (screenWidth >= 1920) {
       bestSrc = currentLink.dataset.src1920;
     } else if (screenWidth >= 1440) {
@@ -97,9 +96,14 @@ document.addEventListener("DOMContentLoaded", () => {
       bestSrc = currentLink.dataset.src960;
     }
 
-    // Apply to overlay
     img.src = bestSrc;
 
-    // No caption logic required; watermark is handled separately
+    if (S3GallerySettings.watermarkEnabled && watermark) {
+      watermark.style.display = "block";
+    }
+
+    // Update button visibility
+    prevButton.style.display = currentIndex === 0 ? "none" : "block";
+    nextButton.style.display = currentIndex === images.length - 1 ? "none" : "block";
   }
 });

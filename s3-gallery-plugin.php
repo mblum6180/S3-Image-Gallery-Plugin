@@ -34,16 +34,26 @@ function s3_image_gallery_enqueue_assets() {
             true
         );
 
-        // Pass the watermark URL to JavaScript
+        // Pass settings to JavaScript
         $watermark_url = get_option('s3_watermark_url', '');
+        $watermark_enabled = get_option('s3_watermark_enabled', 1);
+
         wp_localize_script('s3-image-gallery-script', 'S3GallerySettings', array(
             'watermarkUrl' => esc_url($watermark_url),
+            'watermarkEnabled' => (bool) $watermark_enabled,
         ));
+        
+        // Enqueue the disable-right-click script
+        wp_enqueue_script(
+            'disable-right-click',
+            plugin_dir_url(__FILE__) . 'js/disable-right-click.js',
+            array(), // No dependencies
+            '1.0',
+            true // Load in footer
+        );
     }
 }
 add_action('wp_enqueue_scripts', 's3_image_gallery_enqueue_assets');
-
-
 
 
 /**
@@ -74,11 +84,16 @@ function s3_gallery_settings_page() {
             update_option('s3_watermark_url', esc_url_raw($_POST['watermark_url']));
         }
 
+        // Save watermark enabled setting
+        $watermark_enabled = isset($_POST['watermark_enabled']) ? 1 : 0;
+        update_option('s3_watermark_enabled', $watermark_enabled);
+
         echo '<div class="updated"><p>Settings saved.</p></div>';
     }
 
     $buckets = get_option('s3_buckets', '');
-    $watermark_url = get_option('s3_watermark_url', ''); // Default empty
+    $watermark_url = get_option('s3_watermark_url', '');
+    $watermark_enabled = get_option('s3_watermark_enabled', 1); // Default enabled
     ?>
     <div class="wrap">
         <h1>S3 Image Gallery</h1>
@@ -92,6 +107,11 @@ function s3_gallery_settings_page() {
                 <p>Enter the URL of the watermark image:</p>
             </label>
             <input id="watermark_url" name="watermark_url" type="url" class="regular-text" value="<?php echo esc_attr($watermark_url); ?>" />
+
+            <label for="watermark_enabled">
+                <p>Enable Watermark:</p>
+            </label>
+            <input id="watermark_enabled" name="watermark_enabled" type="checkbox" value="1" <?php checked($watermark_enabled, 1); ?> />
 
             <input type="submit" class="button-primary" value="Save Changes">
         </form>
@@ -110,6 +130,7 @@ function s3_gallery_settings_page() {
     </div>
     <?php
 }
+
 
 
 /**
@@ -186,8 +207,18 @@ function s3_gallery_shortcode($atts)
     }
 
     $images = [];
+
+    // Log the $images array for debugging
+    error_log(print_r($images, true));
+
     if (!empty($baseResults['Contents'])) {
         foreach ($baseResults['Contents'] as $object) {
+
+            // Fix #1: Skip any objects that are in the hires/ subfolder
+            if (strpos($object['Key'], $hires_dir) !== false) {
+                continue;
+            }
+
             // Only match images
             if (preg_match('/\\.(jpg|jpeg|png|webp)$/i', $object['Key'])) {
                 // e.g. "someFolder/myImage.jpg"
@@ -251,4 +282,3 @@ function s3_gallery_shortcode($atts)
     <?php
     return ob_get_clean();
 }
-
