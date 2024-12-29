@@ -457,27 +457,32 @@ function s3_gallery_shortcode($atts)
     // -----------------------------------------------------
     ob_start();
     ?>
-    <div class="s3-gallery">
-        <?php foreach ($images as $image): ?>
-            <div class="s3-gallery-item">
-                <a href="#"
-                   class="s3-gallery-link"
-                   data-src720="<?php echo esc_url($image['url_720']); ?>"
-                   data-src960="<?php echo esc_url($image['url_960']); ?>"
-                   data-src1440="<?php echo esc_url($image['url_1440']); ?>"
-                   data-src1920="<?php echo esc_url($image['url_1920']); ?>"
-                   data-caption="<?php echo esc_attr($image['caption']); ?>">
+        <div class="s3-gallery">
+            <?php foreach ($images as $image): ?>
+                <div class="s3-gallery-item">
+                    <div class="s3-gallery-image-container">
+                        <a href="#"
+                        class="s3-gallery-link"
+                        data-src720="<?php echo esc_url($image['url_720']); ?>"
+                        data-src960="<?php echo esc_url($image['url_960']); ?>"
+                        data-src1440="<?php echo esc_url($image['url_1440']); ?>"
+                        data-src1920="<?php echo esc_url($image['url_1920']); ?>"
+                        data-caption="<?php echo esc_attr($image['caption']); ?>">
 
-                   <!-- Always load the 720 image by default for performance -->
-                   <img 
-                        src="<?php echo esc_url($image['url_720']); ?>"
-                        alt="<?php echo esc_attr($image['caption']); ?>"
-                        loading="lazy"
-                   />
-                </a>
-            </div>
-        <?php endforeach; ?>
-    </div>
+                        <!-- Always load the 720 image by default for performance -->
+                        <img 
+                                src="<?php echo esc_url($image['url_720']); ?>"
+                                alt="<?php echo esc_attr($image['caption']); ?>"
+                                loading="lazy"
+                                width="719"
+                                height="479"
+                        />
+                        </a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
     <?php
     return ob_get_clean();
 }
