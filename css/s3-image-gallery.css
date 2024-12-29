@@ -14,9 +14,20 @@
   text-align: center;
 }
 
+/* Default style for desktop and larger screens */
 .s3-gallery-item img {
-  width: 100%;
-  height: auto;
+  width: auto;      /* Automatically adjust width to maintain aspect ratio */
+  max-height: 480px; /* Limit the maximum height to 480px */
+  display: block;   /* Ensure images are treated as block elements */
+  margin: 0 auto;   /* Center-align the image within its container */
+}
+
+/* Style for smaller screens (cell phones) */
+@media (max-width: 768px) {
+  .s3-gallery-item img {
+    width: 100%;    /* Take full width of the container */
+    height: auto;   /* Maintain aspect ratio */
+  }
 }
 
 /* Caption under each image */
@@ -43,14 +54,14 @@
 .s3-gallery-watermark {
   position: absolute;
   bottom: 10px;
-  right: 10px;
+  right: 42%;
   /* Optional transparency */
   opacity: 0.1;
   /* Prevent clicks from affecting the watermark element */
   pointer-events: none;
   /* Ensure it's above the image but below the close/prev/next buttons if needed */
   z-index: 1001;
-  max-width: 20%; /* Adjust to desired size */
+  max-width: 10%; /* Adjust to desired size */
   height: auto;
 }
 
